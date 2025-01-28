@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOCTOR-AI Diagnosis</title>
+    <style>
+        :root {
+            --primary-bg: #0f172a;
+            --secondary-bg: #1e293b;
+            --card-bg: rgba(30, 41, 59, 0.5);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-color-1: #3b82f6;
+            --accent-color-2: #10b981;
+            --border-color: rgba(148, 163, 184, 0.1);
+            --border-radius: 33px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        *::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .gradient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.1), transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.1), transparent 50%);
+            z-index: -1;
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .form-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-color-1), var(--accent-color-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-header p {
+            color: var(--text-secondary);
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-section h2 {
+            color: var(--accent-color-1);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-group select {
+            background-color: var(--secondary-bg);
+        }
+
+        .form-group select option {
+            background-color: var(--secondary-bg);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-color-1);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .file-upload {
+            border: 2px dashed var(--border-color);
+            padding: 2rem;
+            text-align: center;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .file-upload:hover {
+            border-color: var(--accent-color-1);
+        }
+
+        .file-upload p {
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .submit-btn, .start-diagnosis-btn {
+            background: linear-gradient(135deg, var(--accent-color-1), var(--accent-color-2));
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 2rem;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .submit-btn:hover, .start-diagnosis-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .submit-btn .loading-spinner, .start-diagnosis-btn .loading-spinner {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid var(--text-secondary);
+            border-top: 4px solid var(--accent-color-1);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        .submit-btn.loading .loading-spinner, .start-diagnosis-btn.loading .loading-spinner {
+            display: block;
+        }
+
+        .submit-btn.loading, .start-diagnosis-btn.loading {
+            background: var(--secondary-bg);
+            color: transparent;
+            cursor: default;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .question-form {
+            margin-top: 2rem;
+        }
+
+        .question-form .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .question-form .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-form .form-group input, .question-form .form-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--secondary-bg);
+            color: var(--text-primary);
+            min-height: 5rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            .form-header h1 {
+                font-size: 2rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px transparent inset !important; /* Change 'white' to your desired background color or 'transparent' */
+            -webkit-text-fill-color: white !important; /* If you need to change the text color */
+            transition: background-color 5000s ease-in-out 0s; /* Prevents a sudden color change */
+        }
+
+        /* For select elements */
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover, 
+        select:-webkit-autofill:focus, 
+        select:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        /* For textareas */
+        textarea:-webkit-autofill,
+        textarea:-webkit-autofill:hover,
+        textarea:-webkit-autofill:focus,
+        textarea:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        .file-box {
+            min-height: 125px;
+            width: 14.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background-color: var(--secondary-bg);
+            transition: var(--transition);
+        }
+
+        .file-box:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .file-content {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .file-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+        }
+
+        .file-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .file-name {
+            font-size: 0.9rem;
+            max-width: 5rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .remove-file {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .remove-file:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--accent-color-1);
+        }
+
+        .file-content img {
+            max-width: 200px;
+            max-height: 100px;
+            object-fit: contain;
+            border-radius: var(--border-radius);
+        }
+
+        #fileDisplayContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        #reportModalClose {
+            position: absolute;
+            top: 0.9rem;
+            right: 1.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        #reportModalClose:hover {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            transform: rotate(90deg);
+        }
+
+        .medical-report {
+            color: #f8fafc;
+            padding: 1.5rem;
+            white-space: pre-wrap;
+        }
+        
+        .medical-report h1 {
+            color: #10b981;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .medical-report h2 {
+            color: #f8fafc;
+            font-size: 1.3rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .medical-report h3, 
+        .medical-report strong {
+            color: #f8fafc;
+            font-size: 1.1rem;
+            display: block;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+        }
+        
+        .medical-report ul {
+            list-style: none;
+            padding-left: 1.25rem;
+            margin-bottom: 5px;
+        }
+        
+        .medical-report ul li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 5px;
+            color: #94a3b8;
+        }
+        
+        .medical-report ul li:before {
+            content: "•";
+            color: #10b981;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .medical-report p {
+            margin-bottom: 5px;
+            color: #94a3b8;
+        }
+        
+        .medical-report br {
+            display: block;
+            margin: 0.5rem 0;
+            content: "";
+        }
+        
+        .medical-report pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .loading-text {
+            color: var(--text-primary);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            text-align: center;
+            padding: 1rem 2rem;
+        }
+
+        .loading-text .loading-spinner {
+            display: inline-block;
+            margin: 0 auto;
+            border: 4px solid var(--text-secondary);
+            border-top: 4px solid var(--accent-color-1);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        /* For all input types */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px var(--secondary-bg) inset !important;
+            -webkit-text-fill-color: var(--text-primary) !important;
+            caret-color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+            transition: background-color 5000s ease-in-out 0s;
+            background-color: var(--secondary-bg) !important;
+        }
+
+        /* For select elements */
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover,
+        select:-webkit-autofill:focus,
+        select:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px var(--secondary-bg) inset !important;
+            -webkit-text-fill-color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+            background-color: var(--secondary-bg) !important;
+        }
+
+        /* For textarea elements */
+        textarea:-webkit-autofill,
+        textarea:-webkit-autofill:hover,
+        textarea:-webkit-autofill:focus,
+        textarea:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px var(--secondary-bg) inset !important;
+            -webkit-text-fill-color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+            background-color: var(--secondary-bg) !important;
+        }
+
+        /* Additional specificity for form inputs */
+        .form-group input:-webkit-autofill,
+        .form-group input:-webkit-autofill:hover,
+        .form-group input:-webkit-autofill:focus,
+        .form-group input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px var(--secondary-bg) inset !important;
+            -webkit-text-fill-color: var(--text-primary) !important;
+            background-color: var(--secondary-bg) !important;
+        }
+
+        /* Force background color for all form elements */
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background-color: var(--secondary-bg) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient-bg"></div>
+    <div class="container">
+        <form id="patientForm">
+            <div class="form-header">
+                <h1>Patient Information Form</h1>
+                <p>Please fill in your details</p>
+            </div>
+
+            <div class="form-section">
+                <h2>Personal Information</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="country">Country</label>
+                        <input type="text" id="country" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input type="number" id="age" value="0" min="1" max="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" required>
+                                <option value="">Select</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Physical Characteristics</h2>
+                <div class="form-grid">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="height">Height (in cm)</label>
+                            <input type="number" id="height" value="0.00" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="weight">Weight (in kg)</label>
+                            <input type="number" id="weight" value="0.00" step="0.01" min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="bloodGroup">Blood Group</label>
+                        <select id="bloodGroup">
+                            <option value="">Select</option>
+                            <option value="A+">Don't Know</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Medical Information</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="symptoms">Current Symptoms</label>
+                        <textarea id="symptoms" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="medicalHistory">Medical History</label>
+                        <textarea id="medicalHistory" placeholder="Optional"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="medications">Current Medications</label>
+                        <textarea id="medications" placeholder="Optional"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="extraDetails">Extra Details</label>
+                        <textarea id="extraDetails" placeholder="Optional"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Medical Reports</h2>
+                <div class="file-upload" id="dropZone">
+                    <input type="file" id="fileInput" multiple style="display: none;">
+                    <p>Upload medical reports</p>
+                    <p>Drag and drop files here or click to select</p>
+                    <p style="font-size: 0.8rem; margin-top: 0.5rem;">Limit 200MB per file • PDF, JPG, JPEG, PNG, DOC, DOCX</p>
+                </div>
+                <div id="fileDisplayContainer"></div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                Submit Information
+                <div class="loading-spinner"></div>
+            </button>
+        </form>
+
+        <form id="questionsForm" class="hidden">
+            <div class="form-header">
+                <h1>Follow Up Questions</h1>
+                <p>Please answer the following questions</p>
+            </div>
+            <div id="questionsContainer" class="form-section question-form">
+                <!-- Questions will be added here -->
+            </div>
+            <button type="submit" class="start-diagnosis-btn" id="startDiagnosisBtn" disabled>
+                Start Diagnosis
+                <div class="loading-spinner"></div>
+            </button>
+        </form>
+
+        <div id="reportModal" hidden>
+            <div id="reportModalContent">
+                <button id="reportModalClose">×</button>
+                <div id="reportContainer">
+                    <!-- Report will be displayed here -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        
+        // File upload handling
+        const dropZone = document.getElementById('dropZone');
+        const uploadedFilesSection = document.getElementById('uploadedFilesSection');
+        const submitBtn = document.getElementById('submitBtn');
+        const patientForm = document.getElementById('patientForm');
+        const questionsForm = document.getElementById('questionsForm');
+        const questionsContainer = document.getElementById('questionsContainer');
+        const startDiagnosisBtn = document.getElementById('startDiagnosisBtn');
+        const reportModal = document.getElementById('reportModal');
+        const reportContainer = document.getElementById('reportContainer');
+        const reportModalClose = document.getElementById('reportModalClose');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.style.borderColor = 'var(--accent-color-1)';
+            dropZone.style.background = 'rgba(255, 255, 255, 0.05)';
+        }
+
+        function unhighlight(e) {
+            dropZone.style.borderColor = 'var(--border-color)';
+            dropZone.style.background = 'transparent';
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        dropZone.addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            handleFiles(this.files);
+        });
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        let uploadedFiles = [];
+        let patientInfo = null;
+        let report = null;
+        let followUpQuestions = {};
+        let questions = [];
+
+        function handleFiles(files) {
+            // Filter out files that are already uploaded
+            const newFiles = Array.from(files).filter(file => 
+                !uploadedFiles.some(uploadedFile => 
+                    uploadedFile.name === file.name && uploadedFile.size === file.size
+                )
+            );
+        
+            // Combine new files with existing uploaded files
+            uploadedFiles = [...uploadedFiles, ...newFiles];
+            console.log('Files:', uploadedFiles);
+            displayFiles(uploadedFiles);
+        }
+        
+        function displayFiles(files) {
+            const fileDisplayContainer = document.getElementById('fileDisplayContainer');
+            fileDisplayContainer.innerHTML = ''; // Clear previous list
+        
+            files.forEach((file, index) => {
+                const fileBox = document.createElement('div');
+                fileBox.classList.add('file-box');
+        
+                const fileContent = document.createElement('a');
+                fileContent.href = '#';
+                fileContent.classList.add('file-content');
+                fileContent.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const fileURL = URL.createObjectURL(file);
+                    window.open(fileURL, '_blank');
+                });
+        
+                if (isImageFile(file)) {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    img.onload = () => {
+                        const aspectRatio = img.naturalWidth / img.naturalHeight;
+                        if (img.naturalWidth > img.naturalHeight) {
+                            // Landscape
+                            img.style.width = '100%';
+                            img.style.height = 'auto';
+                        } else {
+                            // Portrait or Square
+                            img.style.width = 'auto';
+                            img.style.height = '100%';
+                        }
+                    }
+                    fileContent.appendChild(img);
+                } else {
+                    const fileIcon = document.createElement('div');
+                    fileIcon.classList.add('file-icon');
+                    fileIcon.innerHTML = getFileIcon(file.name);
+                    fileContent.appendChild(fileIcon);
+                }
+        
+                const fileName = document.createElement('span');
+                fileName.textContent = file.name;
+                fileName.classList.add('file-name');
+                fileContent.appendChild(fileName);
+        
+                const removeButton = document.createElement('button');
+                removeButton.classList.add('remove-file');
+                removeButton.innerHTML = '✖'; // 'X' character
+                removeButton.addEventListener('click', () => {
+                    uploadedFiles.splice(index, 1);
+                    displayFiles(uploadedFiles);
+                });
+        
+                fileBox.appendChild(fileContent);
+                fileBox.appendChild(removeButton);
+                fileDisplayContainer.appendChild(fileBox);
+            });
+        }
+        
+        function isImageFile(file) {
+            return file.type.startsWith('image/');
+        }
+        
+        function getFileIcon(filename) {
+            const extension = filename.split('.').pop().toLowerCase();
+            switch (extension) {
+                case 'pdf':
+                    return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="red" d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>';
+                case 'doc':
+                case 'docx':
+                    return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="blue" d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>';
+                case 'jpg':
+                case 'jpeg':
+                case 'png':
+                case 'gif':
+                    return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="green" d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>';
+                default:
+                    return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="gray" d="M16 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6l-6-6zm0 4v14H4V4h9v2h3z"/></svg>';
+            }
+        }
+
+        function addQuestionToForm(question, index) {
+            const formGroup = document.createElement('div');
+            formGroup.classList.add('form-group');
+
+            const label = document.createElement('label');
+            label.innerHTML = `<strong>${index + 1}. ${question}</strong>`;
+            formGroup.appendChild(label);
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = `question-${index}`;
+            input.required = true;
+            formGroup.appendChild(input);
+
+            questionsContainer.appendChild(formGroup);
+        }
+
+        function checkAllQuestionsAnswered() {
+            const inputs = questionsContainer.querySelectorAll('input[type="text"]');
+            let allAnswered = true;
+            for (const input of inputs) {
+                if (!input.value.trim()) {
+                    allAnswered = false;
+                    break;
+                }
+            }
+            startDiagnosisBtn.disabled = !allAnswered;
+        }
+        
+        // Form submission
+        patientForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+            const formData = new FormData();
+
+            // Append patient details to formData
+            formData.append('fullName', document.getElementById('fullName').value);
+            formData.append('country', document.getElementById('country').value)
+            formData.append('age', document.getElementById('age').value);
+            formData.append('gender', document.getElementById('gender').value);
+            formData.append('height', document.getElementById('height').value);
+            formData.append('weight', document.getElementById('weight').value);
+            formData.append('bloodGroup', document.getElementById('bloodGroup').value);
+            formData.append('symptoms', document.getElementById('symptoms').value);
+            formData.append('medicalHistory', document.getElementById('medicalHistory').value);
+            formData.append('medications', document.getElementById('medications').value);
+            formData.append('extraDetails', document.getElementById('extraDetails').value);
+
+            // Append files to formData
+            for (let i = 0; i < uploadedFiles.length; i++) {
+                formData.append('files', uploadedFiles[i]);
+            }
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Server response:', result);
+
+                    // Store patientInfo and report
+                    patientInfo = {
+                        fullName: document.getElementById('fullName').value,
+                        age: document.getElementById('age').value,
+                        gender: document.getElementById('gender').value,
+                        height: document.getElementById('height').value,
+                        weight: document.getElementById('weight').value,
+                        bloodGroup: document.getElementById('bloodGroup').value,
+                        symptoms: document.getElementById('symptoms').value,
+                        medicalHistory: document.getElementById('medicalHistory').value,
+                        medications: document.getElementById('medications').value,
+                        extraDetails: document.getElementById('extraDetails').value,
+                        country: document.getElementById('country').value
+                    };
+                    report = result.report;
+                    questions = result.questions;
+                    // Hide the first form and show the second form
+                    patientForm.classList.add('hidden');
+                    questionsForm.classList.remove('hidden');
+
+                    // Populate the second form with questions
+                    questions.forEach((question, index) => {
+                        addQuestionToForm(question, index);
+                    });
+
+                    // Add event listeners to inputs for validation
+                    const questionInputs = questionsContainer.querySelectorAll('input[type="text"]');
+                    questionInputs.forEach(input => {
+                        input.addEventListener('input', checkAllQuestionsAnswered);
+                    });
+
+                    // Reset the uploadedFiles array and clear the display
+                    uploadedFiles = [];
+                    displayFiles(uploadedFiles);
+                } else {
+                    console.error('Server error:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+            }
+        });
+
+        questionsForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            startDiagnosisBtn.classList.add('loading');
+            startDiagnosisBtn.disabled = true;
+
+            // Collect follow-up questions
+            const questionInputs = questionsContainer.querySelectorAll('input[type="text"]');
+            questionInputs.forEach((input, index) => {
+                followUpQuestions[questions[index]] = input.value;
+            });
+
+            // Send POST request to /generate_report
+            try {
+                console.log(patientInfo);
+                console.log(report);
+                console.log(followUpQuestions);
+                const response = await fetch('/generate_report', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        patientInfo: patientInfo,
+                        report: report,
+                        followUpQuestions: followUpQuestions
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Generate report response:', result);
+
+                    // Hide the questions form
+                    questionsForm.classList.add('hidden');
+
+                    // Display the report in the modal
+                    reportContainer.innerHTML = result.report;
+                    document.body.style.lineHeight = "1rem";
+                    reportModal.style.display = 'block';
+                } else {
+                    console.error('Server error:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                startDiagnosisBtn.classList.remove('loading');
+                startDiagnosisBtn.disabled = false;
+            }
+        });
+
+        reportModalClose.addEventListener('click', () => {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>

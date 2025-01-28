@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECG Report Analyzer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <style>
+        :root {
+            --primary-bg: #0a0a0a;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --border-radius: 16px;
+            --accent-color: #4ECDC4;
+            --gradient-1: #FF6B6B;
+            --gradient-2: #4ECDC4;
+            --gradient-3: #45B7D1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        *::-webkit-scrollbar {
+            display: none;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .gradient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at top right, rgba(78, 205, 196, 0.2), transparent 50%),
+                radial-gradient(circle at bottom left, rgba(255, 107, 107, 0.2), transparent 50%),
+                radial-gradient(circle at center, rgba(69, 183, 209, 0.1), transparent 50%);
+            z-index: -1;
+            animation: gradientMove 15s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #ffffffaa 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            text-align: center;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .upload-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .drop-zone {
+            width: 100%;
+            min-height: 250px;
+            padding: 2rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent-color);
+            transform: scale(1.01);
+        }
+
+        .drop-zone-text {
+            font-size: 1.4rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .browse-files {
+            color: var(--accent-color);
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .browse-files:hover {
+            color: var(--gradient-1);
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .preview-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+        }
+
+        .preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .file-preview {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .file-preview:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .file-preview img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: calc(var(--border-radius) - 8px);
+            margin-bottom: 0.5rem;
+        }
+
+        .file-preview .file-icon {
+            width: 100%;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, rgba(78, 205, 196, 0.2), rgba(69, 183, 209, 0.2));
+            border-radius: calc(var(--border-radius) - 8px);
+            margin-bottom: 0.5rem;
+            color: var(--accent-color);
+        }
+
+        .file-name {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            word-break: break-all;
+            margin-top: 0.5rem;
+        }
+
+        .remove-file {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(255, 107, 107, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .remove-file:hover {
+            background: rgba(255, 107, 107, 1);
+            transform: scale(1.1);
+        }
+
+        .get-report-btn {
+            background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2));
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+            width: 100%;
+            max-width: 300px;
+            margin: 2rem auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .get-report-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .get-report-btn:hover::before {
+            left: 100%;
+        }
+
+        .get-report-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+
+            .drop-zone {
+                min-height: 200px;
+            }
+        }
+
+        #rules{
+            display: block;
+            width: 60vw;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: var(--primary-bg);
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 65vw;
+            border-radius: var(--border-radius);
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 0.5rem;
+            right: 1rem;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        #reportContent {
+            color: var(--text-secondary);
+            padding: 1rem;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .modal-content {
+            max-height: 84vh;
+            overflow-y: auto;
+            top: -20vh;
+        }
+
+        #reportContent {
+            /* line-height: 1.6; */
+            font-size: 1rem;
+        }
+
+        #reportContent h1,
+        #reportContent h2,
+        #reportContent h3 {
+            /* margin: 1.5rem 0 1rem; */
+            color: var(--text-primary);
+        }
+
+        #reportContent p {
+            /* margin: 1rem 0; */
+            text-indent: 1.5rem;
+        }
+
+        #reportContent ul,
+        #reportContent ol {
+            /* margin: 1rem 0; */
+            padding-left: 2rem;
+        }
+
+        /* #reportContent li {
+            margin: 0.5rem 0;
+        } */
+        ul {
+            margin-block-start: 5px;
+            margin-block-end: 5px;
+        }
+
+        #reportContent pre,
+        #reportContent code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        #reportContent blockquote {
+            border-left: 3px solid var(--accent-color);
+            padding-left: 1rem;
+            color: var(--text-secondary);
+        }
+
+        #reportContent table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        #reportContent th,
+        #reportContent td {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.5rem;
+            text-align: left;
+        }
+
+        #reportContent th {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        } */
+
+        .get-report-btn.loading {
+            position: relative;
+            cursor: not-allowed;
+            color: transparent;
+        }
+
+        /* .get-report-btn.loading::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin-left: -10px;
+            margin-top: -10px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: rotate 1s linear infinite;
+        } */
+
+        .get-report-btn.loading::before {
+            content: "Analyzing...";
+            color: white;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient-bg"></div>
+    <div class="container">
+        <h1 class="title">ECG Report Analyzer</h1>
+
+        <div class="upload-section">
+            <div class="drop-zone" id="drop-zone">
+                <p class="drop-zone-text">Drag and drop files here</p>
+                <p class="drop-zone-text">Supported files: PDF, DOCX, PNG, JPEG, JPG</p>
+                <p>or</p>
+                <p class="browse-files">Browse Files</p>
+            </div>
+            <input type="file" id="file-input" multiple accept="image/*,.pdf,.doc,.docx">
+        </div>
+
+        <div class="preview-section" id="preview-section">
+            <div class="preview-container" id="preview-container">
+                <div id="rules">
+                    <p><strong>Rules You Should Follow when using this app:</strong></p>
+                    <p>     - If you have multiple images of a single ecg report, arrange them in order.</p>
+                    <p>     - Do not use any other document that is not supported.</p>
+                </div>
+            </div>
+        </div>
+
+        <button class="get-report-btn" id="get-report-btn">Generate Report</button>
+    </div>
+
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div id="reportContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const previewContainer = document.getElementById('preview-container');
+        const getReportBtn = document.getElementById('get-report-btn');
+        const reportModal = document.getElementById('reportModal');
+        const reportContent = document.getElementById('reportContent');
+        const closeButton = document.querySelector('.close-button');
+        const selectedFiles = new Set();
+        const fileStorage = new Map();
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFiles, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles({ target: { files } });
+        }
+
+        function handleFiles(e) {
+            const files = [...e.target.files];
+            files.forEach(file => {
+                if (!selectedFiles.has(file.name)) {
+                    selectedFiles.add(file.name);
+                    fileStorage.set(file.name, file);
+                    displayFilePreview(file);
+                }
+            });
+            updateReportButtonState();
+        }
+
+        function displayFilePreview(file) {
+            const preview = document.createElement('div');
+            preview.className = 'file-preview';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-file';
+            removeBtn.innerHTML = '×';
+            removeBtn.onclick = () => {
+                preview.remove();
+                selectedFiles.delete(file.name);
+                fileStorage.delete(file.name);
+                updateReportButtonState();
+            };
+
+            if (file.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                const reader = new FileReader();
+
+                reader.onload = e => img.src = e.target.result;
+                reader.readAsDataURL(file);
+                preview.appendChild(img);
+            } else {
+                const fileIcon = document.createElement('div');
+                fileIcon.className = 'file-icon';
+                fileIcon.textContent = getFileExtension(file.name).toUpperCase();
+                preview.appendChild(fileIcon);
+            }
+
+            const fileName = document.createElement('div');
+            fileName.className = 'file-name';
+            fileName.textContent = file.name;
+
+            preview.appendChild(removeBtn);
+            preview.appendChild(fileName);
+            previewContainer.appendChild(preview);
+            toggleRulesDisplay();
+        }
+
+        function getFileExtension(filename) {
+            return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
+        }
+
+        function updateReportButtonState() {
+            getReportBtn.disabled = selectedFiles.size === 0;
+            getReportBtn.style.opacity = selectedFiles.size === 0 ? '0.5' : '1';
+            toggleRulesDisplay();
+        }
+
+        function toggleRulesDisplay() {
+            const rules = document.getElementById('rules');
+            if (selectedFiles.size === 0) {
+                rules.style.display = 'block';
+            } else {
+                rules.style.display = 'none';
+            }
+        }
+
+        getReportBtn.addEventListener('click', async () => {
+            if (selectedFiles.size > 0) {
+                // Add loading state
+                getReportBtn.classList.add('loading');
+                getReportBtn.disabled = true;
+
+                const formData = new FormData();
+                fileStorage.forEach(file => {
+                    formData.append('files', file);
+                });
+
+                try {
+                    const response = await fetch('/get_ecg_report', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    reportContent.innerHTML = marked.parse(data.report);
+                    reportModal.style.display = 'block';
+
+                } catch (error) {
+                    console.error('Error fetching report:', error);
+                    reportContent.innerHTML = 'Error fetching report. Please try again.';
+                    reportModal.style.display = 'block';
+                } finally {
+                    // Remove loading state
+                    getReportBtn.classList.remove('loading');
+                    getReportBtn.disabled = false;
+                }
+            }
+        });
+
+        closeButton.addEventListener('click', () => {
+            reportModal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target === reportModal) {
+                reportModal.style.display = 'none';
+            }
+        });
+
+
+        updateReportButtonState();
+    </script>
+</body>
