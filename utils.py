@@ -332,27 +332,28 @@ class Patient_chat_Helper:
             )
             return {"type": "text", "data": question['content']}
 
-    def get_bayer_meds(self, prompt: str, country: str = None):
-        bayers_meds = open('static/data/bayers_data.json').read()
-        prompt = prompt +"""
-                Based on this data Provided, can you gimme a list of meds i can suggest from this list of meds for the disease mentioned in the prompt.
-                """ + bayers_meds + """
-                in this JSON format:
-                {"status": found / error, "meds": [{"name": str, "side_effects": str, "uses": str}]}
+    # def get_bayer_meds(self, prompt: str, country: str = None):
+    #     bayers_meds = open('static/data/bayers_data.json').read()
+    #     prompt = prompt +"""
+    #             Based on this data Provided, can you gimme a list of meds i can suggest from this list of meds for the disease mentioned in the prompt.
+    #             """ + bayers_meds + """
+    #             in this JSON format:
+    #             {"status": found / error, "meds": [{"name": str, "side_effects": str, "uses": str}]}
 
-                if no meds are suitable set the status as "error" and set meds as []
-                only if any meds found return status as "found" and in meds return the medicines.
-                Do not return anything other than the JSON data.
-                Do not include any explanation, apology or introductions in the answer.
-                """
-        meds = self.llm.ask_llama(query = prompt)
-        log_debug(meds)
-        if "error" in meds:
-            return None
-        return meds
+    #             if no meds are suitable set the status as "error" and set meds as []
+    #             only if any meds found return status as "found" and in meds return the medicines.
+    #             Do not return anything other than the JSON data.
+    #             Do not include any explanation, apology or introductions in the answer.
+    #             """
+    #     meds = self.llm.ask_llama(query = prompt)
+    #     log_debug(meds)
+    #     if "error" in meds:
+    #         return None
+    #     return meds
 
     def get_report(self, prompt: str, country: str):
-        bayer_meds = self.get_bayer_meds(prompt = prompt, country = country)
+        # bayer_meds = self.get_bayer_meds(prompt = prompt, country = country)
+        bayer_meds = None
         REPORT_PROMPT = """Based on this data generate a mesage for the user telling him the disease and probable medications for that.
                     Also mention the next step the user should take."""
                     
@@ -504,23 +505,23 @@ class Doctor_chat_Helper:
 
         return questions['content']
 
-    def get_bayer_meds(self, prompt: str, country: str = None):
-        bayers_meds = open('static/data/bayers_data.json').read()
-        prompt = prompt +"""
-                Based on this data Provided, can you gimme a list of meds i can suggest from this list of meds for the patient mentioned in the prompt.
-                """ + bayers_meds + """
-                in this JSON format:
-                {"status": found / error, "meds": [{"name": str, "side_effects": str, "uses": str}]}
+    # def get_bayer_meds(self, prompt: str, country: str = None):
+    #     bayers_meds = open('static/data/bayers_data.json').read()
+    #     prompt = prompt +"""
+    #             Based on this data Provided, can you gimme a list of meds i can suggest from this list of meds for the patient mentioned in the prompt.
+    #             """ + bayers_meds + """
+    #             in this JSON format:
+    #             {"status": found / error, "meds": [{"name": str, "side_effects": str, "uses": str}]}
 
-                if no meds are suitable set the status as error and set meds as []
-                Do not return anything other than the JSON data.
-                Do not include any explanation, apology or introductions in the answer.
-                """
-        meds = self.llm_client.ask_llama(query = prompt)
-        log_debug(meds)
-        if "error" in meds:
-            return None
-        return meds
+    #             if no meds are suitable set the status as error and set meds as []
+    #             Do not return anything other than the JSON data.
+    #             Do not include any explanation, apology or introductions in the answer.
+    #             """
+    #     meds = self.llm_client.ask_llama(query = prompt)
+    #     log_debug(meds)
+    #     if "error" in meds:
+    #         return None
+    #     return meds
 
     def generate_report(self, patient_data: dict, report: str = None, follow_up_questions: dict = None) -> str:
         patient_profile = """This is the patient Profile:\n"""
@@ -540,7 +541,8 @@ class Doctor_chat_Helper:
         else:
             follow_up_questions = ''
         
-        bayers_meds = self.get_bayer_meds(prompt= patient_profile + report + questions)
+        # bayers_meds = self.get_bayer_meds(prompt= patient_profile + report + questions)
+        bayer_med = None
         DIFFERENTIAL_DIAGONOSIS_GENERATION_PROMPT = """
         Please generate a differential diagnosis using the following template for the given patient:
 
@@ -589,8 +591,10 @@ class Doctor_chat_Helper:
             ---
             Disclaimer: Do no Take any medication without consulting a Doctor."""
 
-        DIFFERENTIAL_DIAGONOSIS_GENERATION_PROMPT ="""NOTE: When mentioning medications always prioritize the medications from the following data, if no meds available in the data for the disease then you may prescribe any medicine you think is suitable:
-                    """ + bayers_meds + DIFFERENTIAL_DIAGONOSIS_GENERATION_PROMPT if bayers_meds != None else DIFFERENTIAL_DIAGONOSIS_GENERATION_PROMPT
+        if bayers_meds != None:
+            DIFFERENTIAL_DIAGONOSIS_GENERATION_PROMPT = """NOTE: When mentioning medications always prioritize the medications from the following data, if no meds available in the data for the disease then you may prescribe any medicine you think is suitable:
+                    """ + bayers_meds + DIFFERENTIAL_DIAGONOSIS_GENERATION_PROMPT
+
 
         prompt = patient_profile + report + questions + "\n\n" + DIFFERENTIAL_DIAGONOSIS_GENERATION_PROMPT
         report = self.llm_client.ask_llama(query= prompt)
