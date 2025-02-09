@@ -183,6 +183,11 @@ body {
     .box {
         min-width: 250px;
         height: fit-content;
+        margin-bottom: 2rem;
+        
+    }
+    .box-container{
+        display: block;
     }
 }
 
