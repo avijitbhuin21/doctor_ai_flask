@@ -542,7 +542,7 @@ class Doctor_chat_Helper:
             follow_up_questions = ''
         
         # bayers_meds = self.get_bayer_meds(prompt= patient_profile + report + questions)
-        bayer_med = None
+        bayer_meds = None
         DIFFERENTIAL_DIAGONOSIS_GENERATION_PROMPT = """
         Please generate a differential diagnosis using the following template for the given patient:
 
