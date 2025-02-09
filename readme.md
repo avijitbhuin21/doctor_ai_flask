@@ -1,1 +1,1 @@
-this is project readme not yet configured
+this is project readme (yet to be configured)
