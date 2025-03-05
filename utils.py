@@ -13,7 +13,7 @@ from markdown.extensions import fenced_code
 
 import fitz  
 from PIL import Image
-from IPython.display import display, Image as IPyImage
+# from IPython.display import display, Image as IPyImage
 import google.generativeai as genai
 import tempfile
 import mimetypes
@@ -468,7 +468,7 @@ Cause this will be used to diagonose the patient. Generate this in MARKDOWN form
                 # Decode the base64 image
                 image_data = base64.b64decode(img)
                 # Display the image
-                display(IPyImage(data=image_data, format='jpeg'))
+                # display(IPyImage(data=image_data, format='jpeg'))
                 print(f"Page {i+1} image displayed.")
             except Exception as e:
                 print(f"Error displaying image for page {i+1}: {e}")
