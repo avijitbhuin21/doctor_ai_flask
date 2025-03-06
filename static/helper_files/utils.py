@@ -23,9 +23,12 @@ from werkzeug.utils import secure_filename
 load_dotenv()
 DEBUG = True
 
-def log_debug(data):
+def log_debug(data, name= None):
     if DEBUG:
-        print("DEBUG:")
+        if name:
+            print(f"DEBUG: {name}")
+        else:
+            print("DEBUG:")
         print(data)
         print("\n\n")
 
@@ -168,7 +171,7 @@ class LLM:
         }
 
         model = genai.GenerativeModel(
-            model_name="gemini-exp-1206",
+            model_name="gemini-2.0-flash",
             generation_config=generation_config,
         )
 

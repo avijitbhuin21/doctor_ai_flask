@@ -1,7 +1,20 @@
 from flask import Flask, render_template, request, jsonify
-from utils import Patient_chat_Helper, File, Doctor_chat_Helper, ECG
+from static.helper_files.utils import Patient_chat_Helper, File, Doctor_chat_Helper, ECG
 import json
 from flask import request
+from static.helper_files.supabase import *
+
+
+from supabase import create_client
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Initialize Supabase client
+supabase_url = os.environ.get("SUPABASE_URL")
+supabase_key = os.environ.get("SUPABASE_KEY")
+supabase = create_client(supabase_url, supabase_key)
 
 patient_agent = Patient_chat_Helper()
 doctor_agent = Doctor_chat_Helper()
@@ -22,6 +35,8 @@ def log_debug(data):
 def index():
     return render_template("homepage.html")
 
+
+
 @app.route("/redirect_patient")
 def redirect_patient():
     return render_template("redirect_patient.html")
@@ -29,6 +44,16 @@ def redirect_patient():
 @app.route("/redirect_doctor")
 def redirect_doctor():
     return render_template("redirect_doctor.html")
+
+@app.route("/check_login_status", methods=["POST"])
+def check_login_status():
+    data = request.json
+    email = data.get("email")
+    log_debug(email)
+    xx = get_login_status(email)
+    log_debug(xx)
+
+    return xx
 
 @app.route("/get_ecg")
 def get_ecg():
@@ -113,6 +138,23 @@ def generate_report():
 
     return jsonify({"report": differential_diagonosis})
 
+@app.route('/submit_feedback', methods=['POST'])
+def submit_feedback():
+    try:
+        data = request.json
+        email = data.get('email')
+        feedback = data.get('feedback')
+        
+        # Print to console for debugging
+        log_debug("Feedback Submission:")
+        log_debug(f"Email: {email}")
+        log_debug(f"Feedback: {feedback}")
+        
+        return store_feedback(email, feedback)
+    except Exception as e:
+        log_debug(f"Error submitting feedback: {str(e)}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route('/get_ecg_report', methods=['POST'])
 def get_ecg_report():
     files = request.files.getlist("files")
@@ -132,10 +174,4 @@ if __name__ == "__main__":
     app.run(debug=True)
 
 
-# --------Patient Page-----------#
-# prioritize bayer meds first country specific.
-# make the country field specific
 
-# -------Doctor Part-------------#
-# make the country field specific
-# suggest bayers meds that is country specific.

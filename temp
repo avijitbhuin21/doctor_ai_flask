@@ -1204,42 +1204,6 @@
                 margin-right: 1rem;
             }
         }
-        .login-required-message {
-            display: none;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-top: 1rem;
-            font-style: italic;
-            opacity: 0.8;
-            transition: opacity 0.3s ease;
-        }
-        
-        .feature-card:hover .login-required-message {
-            opacity: 1;
-        }
-        
-        .feature-card.not-logged-in {
-            cursor: default !important;
-            opacity: 0.85;
-        }
-        
-        .feature-card.not-logged-in:hover {
-            transform: none !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
-            border-color: rgba(255, 255, 255, 0.1) !important;
-        }
-        
-        .feature-card.not-logged-in .feature-link {
-            display: none;
-        }
-        
-        .feature-card.not-logged-in .login-required-message {
-            display: block;
-        }
-        
-        .auth-required {
-            transition: all 0.3s ease;
-        }
     </style>
 </head>
 <body>
@@ -1318,8 +1282,7 @@
                     </div>
                     <h3 class="feature-title">For Patients</h3>
                     <p class="feature-description">Chat with our advanced Doctor-AI to diagnose yourself anytime and get a comprehensive understanding of your symptoms from the comfort of your own home.</p>
-                    <a href="/redirect_patient" class="feature-link auth-required">Get started<i class="fas fa-arrow-right"></i></a>
-                    <div class="login-required-message">Login required to access</div>
+                    <a href="/redirect_patient" class="feature-link">Get started<i class="fas fa-arrow-right"></i></a>
                     <div class="feature-overlay"></div>
                 </div>
                 
@@ -1329,8 +1292,7 @@
                     </div>
                     <h3 class="feature-title">For Doctors</h3>
                     <p class="feature-description">Analyze patients quickly and efficiently without missing any important details. Our AI provides differential diagnoses to support your medical expertise.</p>
-                    <a href="/redirect_doctor" class="feature-link auth-required">Get started <i class="fas fa-arrow-right"></i></a>
-                    <div class="login-required-message">Login required to access</div>
+                    <a href="/redirect_doctor" class="feature-link">Get started <i class="fas fa-arrow-right"></i></a>
                     <div class="feature-overlay"></div>
                 </div>
             </div>
@@ -1341,20 +1303,20 @@
             <h2 class="section-title">Our Tools</h2>
             <div class="tools-container">
                 <div class="tool-card ecg not-ready">
-                    <h3 class="tool-title">Report Analysis</h3>
-                    <p>Upload any reports for instant AI-powered analysis and interpretation.</p>
+                    <h3 class="tool-title">ECG Analysis</h3>
+                    <p>Upload ECG reports for instant AI-powered analysis and interpretation.</p>
                     <div class="tool-badge">Coming Soon</div>
                 </div>
                 
                 <div class="tool-card marketplace not-ready">
-                    <h3 class="tool-title">Disease lookup</h3>
-                    <p>Get areport about any disease instantly with one click.</p>
+                    <h3 class="tool-title">Medicine Marketplace</h3>
+                    <p>Order prescriptions online with doorstep delivery and medication reminders.</p>
                     <div class="tool-badge">Coming Soon</div>
                 </div>
                 
                 <div class="tool-card coming-soon not-ready">
-                    <h3 class="tool-title">Interpretor</h3>
-                    <p>Interpreting Physician Notes with stunning accuracy.</p>
+                    <h3 class="tool-title">More Coming Soon</h3>
+                    <p>We're constantly developing new tools to improve healthcare accessibility.</p>
                     <div class="tool-badge">Stay Tuned</div>
                 </div>
             </div>
@@ -1864,9 +1826,6 @@
                         // Add welcome message to hero content
                         heroButtons.parentNode.insertBefore(welcomeMessage, heroButtons);
                         
-                        // Update feature cards to enable them
-                        updateFeaturesAfterLogin();
-                        
                     } else if (data.status === 'present') {
                         // Email already registered
                         showNotification('Email already registered', 'Please check your inbox for the confirmation email.', 'info');
@@ -2096,113 +2055,6 @@
                     submitFeedback.innerHTML = 'Submit Feedback';
                 }
             });
-
-            // Check login status and update UI accordingly
-            function checkLoginStatus() {
-                const storedEmail = localStorage.getItem('medconsious_login');
-                const featureCards = document.querySelectorAll('.feature-card');
-                const patientCard = document.querySelector('.feature-card.patient');
-                const doctorCard = document.querySelector('.feature-card.doctor');
-                
-                if (storedEmail) {
-                    // Check if the email is verified
-                    fetch('/check_login_status', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ email: storedEmail })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === true) {
-                            // User is verified - enable features
-                            featureCards.forEach(card => {
-                                card.classList.remove('not-logged-in');
-                            });
-                            
-                            // Enable clickable cards
-                            if (patientCard) {
-                                patientCard.style.cursor = 'pointer';
-                                patientCard.addEventListener('click', function(e) {
-                                    // Don't trigger redirect if clicking on the link itself
-                                    if (e.target.tagName !== 'A' && !e.target.closest('a')) {
-                                        window.location.href = '/redirect_patient';
-                                    }
-                                });
-                            }
-                            
-                            if (doctorCard) {
-                                doctorCard.style.cursor = 'pointer';
-                                doctorCard.addEventListener('click', function(e) {
-                                    // Don't trigger redirect if clicking on the link itself
-                                    if (e.target.tagName !== 'A' && !e.target.closest('a')) {
-                                        window.location.href = '/redirect_doctor';
-                                    }
-                                });
-                            }
-                        } else {
-                            // Email not verified - disable features
-                            disableFeatures();
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Failed to check login status:', error);
-                        disableFeatures();
-                    });
-                } else {
-                    // No stored email - disable features
-                    disableFeatures();
-                }
-            }
-            
-            // Function to disable features for non-logged in users
-            function disableFeatures() {
-                const featureCards = document.querySelectorAll('.feature-card');
-                featureCards.forEach(card => {
-                    card.classList.add('not-logged-in');
-                    // Remove any existing click events
-                    card.style.cursor = 'default';
-                    card.replaceWith(card.cloneNode(true));
-                });
-                
-                // Add event listeners to links to prevent default action
-                document.querySelectorAll('.auth-required').forEach(link => {
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        showLoginPrompt();
-                    });
-                });
-            }
-            
-            // Show login prompt
-            function showLoginPrompt() {
-                showNotification(
-                    'Login Required', 
-                    'Please join the waitlist or login to access this feature.', 
-                    'info'
-                );
-                
-                // Scroll to email input
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-                
-                // Focus on email input after scroll
-                setTimeout(() => {
-                    const emailInput = document.getElementById('email-input');
-                    if (emailInput) emailInput.focus();
-                }, 800);
-            }
-            
-            // Check login status on page load
-            checkLoginStatus();
-            
-            // Update feature cards after successful login
-            function updateFeaturesAfterLogin() {
-                checkLoginStatus();
-            }
         });
     </script>
 
