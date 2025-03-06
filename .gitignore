@@ -2,3 +2,7 @@ venv
 .env
 trial.py
 old_files
+backup.txt
+old_utils.py
+temp
+trial.ipynb
