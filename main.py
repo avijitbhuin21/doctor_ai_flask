@@ -1,23 +1,18 @@
 from flask import Flask, render_template, request, jsonify
-from static.helper_files.utils import Patient_chat_Helper, File, Doctor_chat_Helper, ECG
+from static.helper_files.utils import Patient_chat_Helper, File, ECG
 import json
 from flask import request
 from static.helper_files.supabase import *
 
+from static.helper_files.B2b import B2b
 
-from supabase import create_client
-import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Initialize Supabase client
-supabase_url = os.environ.get("SUPABASE_URL")
-supabase_key = os.environ.get("SUPABASE_KEY")
-supabase = create_client(supabase_url, supabase_key)
 
 patient_agent = Patient_chat_Helper()
-doctor_agent = Doctor_chat_Helper()
+doctor_agent = B2b()
 file_handler = File()
 ecg_agent = ECG()
 app = Flask(__name__)
@@ -118,7 +113,7 @@ def upload():
         report = file_handler.handle_file(file_data= file_data)
         log_debug(report)
 
-    questions = doctor_agent.get_questions(patient_data= patient_details, reports= report)
+    questions = doctor_agent.get_initial_questions(patient_data= patient_details, reports= report)
     log_debug(questions)
     return jsonify({"questions": questions, "report": report})
 

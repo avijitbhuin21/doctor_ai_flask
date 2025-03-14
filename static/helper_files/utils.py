@@ -14,10 +14,9 @@ from markdown.extensions import fenced_code
 import fitz  
 from PIL import Image
 # from IPython.display import display, Image as IPyImage
-import google.generativeai as genai
 import tempfile
 import mimetypes
-import google.generativeai as genai
+from google import genai
 from werkzeug.utils import secure_filename
 
 load_dotenv()
@@ -485,124 +484,6 @@ Cause this will be used to diagonose the patient. Generate this in MARKDOWN form
 
         return final_report
 
-
-class Doctor_chat_Helper:
-    def __init__(self):
-        self.llm_client = LLM()
-
-    def get_questions(self, patient_data: dict, reports: str = None) -> str:
-        prompt = """This is the patient Profile:\n"""
-        for i in patient_data:
-            if patient_data[i] != '':
-                prompt += f'''{i}: {patient_data[i]}\n'''
-
-        if reports:
-            prompt += "These are the reports related to the patient:\n" + reports
-
-        QUESTION_GENERATION_PROMPT = '''Based on the following data provided about the patient generate some questions you would like to ask the patient before analyzing the patient.
-            Note that ask as less question as possible to the patient.
-            in the following JSON format:
-            {"content": list(str)}'''
-
-        questions = self.llm_client.ask_Mistral(prompt + '\n\n' + QUESTION_GENERATION_PROMPT, JSON= True)
-
-        return questions['content']
-
-    # def get_bayer_meds(self, prompt: str, country: str = None):
-    #     bayers_meds = open('static/data/bayers_data.json').read()
-    #     prompt = prompt +"""
-    #             Based on this data Provided, can you gimme a list of meds i can suggest from this list of meds for the patient mentioned in the prompt.
-    #             """ + bayers_meds + """
-    #             in this JSON format:
-    #             {"status": found / error, "meds": [{"name": str, "side_effects": str, "uses": str}]}
-
-    #             if no meds are suitable set the status as error and set meds as []
-    #             Do not return anything other than the JSON data.
-    #             Do not include any explanation, apology or introductions in the answer.
-    #             """
-    #     meds = self.llm_client.ask_llama(query = prompt)
-    #     log_debug(meds)
-    #     if "error" in meds:
-    #         return None
-    #     return meds
-
-    def generate_report(self, patient_data: dict, report: str = None, follow_up_questions: dict = None) -> str:
-        patient_profile = """This is the patient Profile:\n"""
-        for i in patient_data:
-            if patient_data[i] != '':
-                patient_profile += f'''{i}: {patient_data[i]}\n'''
-
-        if report:
-            report = "These are the reports related to the patient:\n" + report + "\n\n"
-        else:
-            report = ''
-
-        if follow_up_questions:
-            questions = "These are the follow up questions related to the patient:\n\n"
-            for index,i in enumerate(follow_up_questions):
-                questions+= f"question_{index}: {i}\n answer: {follow_up_questions[i]}\n\n"
-        else:
-            follow_up_questions = ''
-        
-        # bayers_meds = self.get_bayer_meds(prompt= patient_profile + report + questions)
-        bayers_meds = None
-        DIFFERENTIAL_DIAGONOSIS_GENERATION_PROMPT = """
-        Please generate a differential diagnosis using the following template for the given patient:
-
-            ## Patient Information
-             - Name:  
-             - Age:  
-             - Gender:  
-             - Main Symptoms:  
-             - Past Medical History:  
-             - Known Medical Conditions:  
-             - Current Medications:
-             - Country:
-
-            ##Differential Diagnosis:
-
-            For each potential disease, include:
-            # Disease Name (Chance Percentage)
-             **Reasoning:**
-                - Symptom 1
-                - Symptom 2
-
-             **Relevant history or examination finding:**
-                - details
-
-             **Probable Medications:**
-                - Medication 1
-                    - known side effects 
-                    - efficacy 
-
-                - Medication 2
-                    - known side effects 
-                    - efficacy 
-
-             **Tests:**(only if applicable)
-                 - test 1
-                 - test 2
-
-             **Home Remeady:**(only if applicable)
-                 - Suggestion 1
-                 - suggestion 2
-            
-            Repeat for up to 10 diseases that are most likely based on the patient information.
-            
-            At the very last add the following disclaimer:
-            
-            ---
-            Disclaimer: Do no Take any medication without consulting a Doctor."""
-
-        if bayers_meds != None:
-            DIFFERENTIAL_DIAGONOSIS_GENERATION_PROMPT = """NOTE: When mentioning medications always prioritize the medications from the following data, if no meds available in the data for the disease then you may prescribe any medicine you think is suitable:
-                    """ + bayers_meds + DIFFERENTIAL_DIAGONOSIS_GENERATION_PROMPT
-
-
-        prompt = patient_profile + report + questions + "\n\n" + DIFFERENTIAL_DIAGONOSIS_GENERATION_PROMPT
-        report = self.llm_client.ask_llama(query= prompt)
-        report = generate_medical_report_html(report)
-        return report['html']
 
 class ECG:
     def __init__(self):

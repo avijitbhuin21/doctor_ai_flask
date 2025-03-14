@@ -58,7 +58,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 1.5rem;
+            padding: 0.5rem 0.5rem 0.5rem 1.5rem;
             position: fixed;
             width: 100%;
             top: 0;
@@ -76,26 +76,83 @@
             padding: 0.75rem 1.5rem;
         }
 
+        .navbar.scrolled .logo-text {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-20px);
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+            position: absolute;
+        }
+
+        .logo-text {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+            position: relative;
+        }
+
+        .navbar.scrolled .logo-image {
+            height: 50px;
+            transition: all 0.3s ease;
+        }
+
         .logo {
             display: flex;
             align-items: center;
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: var(--text-primary);
             text-decoration: none;
+            gap: 1rem;
+            min-width: 300px;  /* Maintain space for nav-links */
         }
 
-        .logo-icon {
-            margin-right: 10px;
-            color: var(--accent-blue);
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            color: var(--text-primary);
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+            position: relative;
+        }
+
+        .logo-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .logo-image {
+            height: 70px;
+            width: auto;
+            transition: opacity var(--transition-speed);
+        }
+
+        .logo:hover .logo-image {
+            opacity: 0.9;
         }
 
         .nav-links {
             display: flex;
             gap: 2rem;
-            /* background: rgba(255, 255, 255, 0.1);
-            
-            backdrop-filter: blur(10px); */
+            transform: translateX(0);
+            transition: all 0.3s ease;
+            margin-left: 0;
+        }
+
+        .navbar.scrolled .nav-links {
+            transform: translateX(1rem);
+            margin-left: -150px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border-radius: 25px;
+            padding: 0.75rem 1.5rem;
         }
 
         .nav-links a {
@@ -746,16 +803,23 @@
         .footer-column {
             display: flex;
             flex-direction: column;
-            margin-left: 8rem;
+            margin-left: 7rem;
         }
 
         .footer-logo {
-            font-size: 1.5rem;
-            font-weight: 700;
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+        }
+
+        .footer-logo .logo-image {
+            height: 80px;
+            width: auto;
+            transition: opacity var(--transition-speed);
+        }
+
+        .footer-logo:hover .logo-image {
+            opacity: 0.9;
         }
 
         .footer-description {
@@ -1194,7 +1258,7 @@
         /* Desktop-specific styles */
         @media (min-width: 992px) {
             .footer-column {
-                margin-left: 8rem;
+                margin-left: 7rem;
             }
             .navbar .feedback-container {
                 display: flex;
@@ -1248,8 +1312,11 @@
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
         <a href="#" class="logo">
-            <i class="fas fa-heartbeat logo-icon"></i>
-            MedConscious
+            <img src="{{ url_for('static', filename='images/medconscios_logo.svg') }}" alt="MedConscious Logo" class="logo-image">
+            <div class="logo-text">
+                <div class="logo-title">MedConscious</div>
+                <div class="logo-subtitle">Where AI meets care</div>
+            </div>
         </a>
         <div class="nav-links">
             <a href="#navbar">Home</a>
@@ -1397,8 +1464,11 @@
         <div class="footer-container">
             <div class="footer-column">
                 <div class="footer-logo">
-                    <i class="fas fa-heartbeat logo-icon"></i>
-                    MedConscious
+                    <img src="{{ url_for('static', filename='images/medconscios_logo.svg') }}" alt="MedConscious Logo" class="logo-image">
+                    <div class="logo-text">
+                        <div class="logo-title">MedConscious</div>
+                        <div class="logo-subtitle">Where AI meets care</div>
+                    </div>
                 </div>
                 <p class="footer-description">Revolutionizing healthcare with AI-powered diagnostics and support for patients and doctors alike.</p>
                 <div class="social-links">
@@ -1788,7 +1858,7 @@
                         // Create welcome message instead of showing buttons
                         const welcomeMessage = document.createElement('div');
                         welcomeMessage.classList.add('welcome-message');
-                        welcomeMessage.innerHTML = 'Welcome to MedConscious-Beta-Preview';
+                        welcomeMessage.innerHTML = "Welcome to MedConscious-Beta-Preview <br><br> The Website is under construction, So please stay connected with us.<br> We'd love to hear your feedback!";
                         
                         // Replace hero buttons with welcome message
                         heroButtons.parentNode.insertBefore(welcomeMessage, heroButtons);

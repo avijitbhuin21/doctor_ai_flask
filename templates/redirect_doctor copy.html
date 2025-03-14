@@ -188,8 +188,12 @@
 
         /* Floating Actions */
         .floating-actions {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
             display: flex;
             gap: 0.75rem;
+            z-index: 1000;
             padding: 0.5rem;
             background: rgba(20, 20, 20, 0.8);
             backdrop-filter: blur(10px);
@@ -874,7 +878,7 @@
         .report-header {
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: space-between;
             padding: 1.5rem 2rem;
             border-bottom: 1px solid var(--border-color);
             background: rgba(20, 20, 20, 0.7);
@@ -1264,6 +1268,10 @@
             }
 
             .floating-actions {
+                top: auto;
+                bottom: 2rem;
+                right: 50%;
+                transform: translateX(50%);
                 background: rgba(20, 20, 20, 0.95);
             }
 
@@ -1499,6 +1507,17 @@
         </a>
 
         <!-- Floating Report Actions -->
+        <div class="floating-actions">
+            <button type="button" class="action-btn" id="downloadReportBtn" title="Download PDF">
+                <i class="fas fa-file-download"></i>
+            </button>
+            <button type="button" class="action-btn" id="printReportBtn" title="Print Report">
+                <i class="fas fa-print"></i>
+            </button>
+            <button type="button" class="action-btn close" id="closeReportBtn" title="Close Report">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
         
         <div class="page-container">
             <div class="card">
@@ -1716,17 +1735,13 @@
                     <!-- Report View -->
                     <div class="form-step" id="reportStep">
                         <div class="report-header">
-                            <div class="floating-actions visible">
-                                <button type="button" class="action-btn" id="downloadReportBtn" title="Download PDF">
-                                    <i class="fas fa-file-download"></i>
-                                </button>
-                                <button type="button" class="action-btn" id="printReportBtn" title="Print Report">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                                <button type="button" class="action-btn close" id="closeReportBtn" title="Close Report">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
+                            <!-- <div class="logo-container">
+                                <div class="logo-icon">
+                                    <i class="fas fa-heartbeat"></i>
+                                </div>
+                                <div class="logo-text">MedConscious</div>
+                            </div> -->
+                            
                         </div>
                         
                         <div class="report-container" id="reportContainer"></div>
