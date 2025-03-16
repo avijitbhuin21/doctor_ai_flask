@@ -5,9 +5,10 @@ from flask import request
 from static.helper_files.supabase import *
 
 #Local imports
+from static.helper_files.PROMPTS import *
+from static.helper_files.universal_functions import *
 from static.helper_files.B2b import B2b
 from static.helper_files.B2c import B2c
-from static.helper_files.universal_functions import log_debug
 
 from dotenv import load_dotenv
 
@@ -92,10 +93,11 @@ def upload():
         files = request.files.getlist("files")
         file_data = []
         for file in files:
-            file_data.append({"filename": file.filename, "content": file.read()})
-            file.seek(0)  
+            # Correct tuple syntax for append
+            file_data.append((file.filename, file.read()))
+            file.seek(0) 
 
-        report = file_handler.handle_file(file_data= file_data)
+        report = process_file_with_gemini(file_data= file_data, sys=REPORT_GENERATION_PROMPT_FILE)
         log_debug(report)
 
     questions = doctor_agent.get_initial_questions(patient_data= patient_details, reports= report)

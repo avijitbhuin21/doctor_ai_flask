@@ -240,3 +240,22 @@ MANDATORY TEMPLATE STRUCTURE:
 
 ---
 Disclaimer: [a brief warning telling the user Do not take any medication without consulting a Professional Doctor.]"""
+
+# PROMPTS FOR FILE ---------------------------------------------------------------------------------------------------------------------------------->
+
+REPORT_GENERATION_PROMPT_FILE = """Please analyze all available patient medical files and generate a comprehensive clinical report in Markdown format. This report will be used for patient diagnosis, so ensure you extract and include:
+
+1. Patient demographics and basic information
+2. Complete medical history including prior diagnoses and treatments
+3. All vital signs and their trends over time
+4. Detailed summary of presenting symptoms with onset and progression
+5. All laboratory results with flagged abnormal values and their clinical significance
+6. Imaging findings with key observations from radiology reports
+7. Medication history including current prescriptions, dosages, and any noted adverse effects
+8. Allergy information and contraindications
+9. Specialist consultation notes and recommendations
+10. Potential differential diagnoses based on the findings
+
+Structure the report with clear headers, tables for data presentation, and bullet points for key findings. Highlight critical abnormal values and urgent concerns. Include a summary section that synthesizes the most significant findings relevant to diagnosis.
+
+This report will directly inform clinical decision-making, so comprehensiveness and accuracy are essential. Do not omit any potentially relevant clinical information found in the files."""
