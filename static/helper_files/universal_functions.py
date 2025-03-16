@@ -60,7 +60,7 @@ def generate_medical_report_html(markdown_text):
 
 
 #ASK GEMINI FLASH Function:
-def ask_gemini_flash(question, sys, api_key = os.getenv('Gemini_APi_Key'), model = "gemini-2.0-flash-thinking-exp-01-21", JSON = False, history = None):
+def ask_gemini_flash(question, sys, api_key = os.getenv('GEMINI_API_KEY'), model = "gemini-2.0-flash-thinking-exp-01-21", JSON = False, history = None):
 
     log_debug(question, name = "Asking Gemini Flash")
 
@@ -106,7 +106,7 @@ def ask_gemini_flash(question, sys, api_key = os.getenv('Gemini_APi_Key'), model
 
 
 #Process a file with Gemini
-def process_file_with_gemini(file_data: List[Tuple], sys= '', prompt= '', api_key = os.getenv('Gemini_APi_Key'), model = "gemini-2.0-flash", JSON = False):
+def process_file_with_gemini(file_data: List[Tuple], sys= '', prompt= '', api_key = os.getenv('GEMINI_API_KEY'), model = "gemini-2.0-flash", JSON = False):
     
     # File data structure: [(filename, file_content), (filename, file_content),...]
 
