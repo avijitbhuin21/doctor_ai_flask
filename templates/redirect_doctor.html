@@ -2238,7 +2238,8 @@
                     const reportData = {
                         patientInfo: patientInfo,
                         report: report,
-                        followUpQuestions: followUpQuestions
+                        followUpQuestions: followUpQuestions,
+                        email: localStorage.getItem('medconsious_login')
                     };
 
                     // Make API call to generate report

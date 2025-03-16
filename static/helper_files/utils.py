@@ -353,63 +353,7 @@ class Patient_chat_Helper:
     #         return None
     #     return meds
 
-    def get_report(self, prompt: str, country: str):
-        # bayer_meds = self.get_bayer_meds(prompt = prompt, country = country)
-        bayer_meds = None
-        REPORT_PROMPT = """Based on this data generate a mesage for the user telling him the disease and probable medications for that.
-                    Also mention the next step the user should take."""
-                    
-        STRUCTURE_OF_THE_ANSWER = """
-                    Generate this is MARKDOWN format.
-                    Also You Must Mention that the patient is advised to consult a doctor before taking any of those meds.
-                    
-                    Use the format below to generate the report(from this template if the data is available for the patient only then add it to the report else ignore that particular option or section):
-                    Certainly! Below is a simplistic template for a Disease Diagnosis Report:
-
-#Disease Diagnosis Report
-
-
-**Diagnosis:**
-- Disease/Condition: [Name of the Disease/Condition]
-
-**Symptoms:**
-- [List of Symptoms Observed]
-
-**Medical History:**
-- [Relevant Medical History if provided by the user]
-
-**Treatment Plan:**
-- Medications: [List of Prescribed Medications]
-
-- Name: [Name of the Drug]
-    - Use: [Purpose of the Drug]
-    - Dosage: [Dosage Instructions and Efficacy of the Drug]
-    - Known Side Effects: [List of known side effects of the provided medications (only if there are any side effects)]
-    - Efficacy of the drug.
-(repeat this pattern for each prescribed medicine)
-
-- Therapy/Procedures: [List of Recommended Therapies/Procedures]
-- Follow-up: [Follow-up Instructions]
-
-**Probable Tests:**
-- [Relevant tests to be taken to confirm the diagnosis (only if required)]
-
-**Prognosis:**
-- [Expected Outcome and Prognosis]
-
-**Additional Notes:**
-- [Any Additional Information or Notes]
-
----
-Disclaimer: Do no Take any medication without consulting a Doctor.
-"""
-
-        if bayer_meds != None:
-            ADDITIONAL_PROMPT = f'''When mentioning medications always prioritize the medications from the following data, if no meds available then you may prescribe any medicine you think is suitable: {bayer_meds}'''
-            REPORT_GENERATION_PROMPT = REPORT_PROMPT + ADDITIONAL_PROMPT + STRUCTURE_OF_THE_ANSWER
-        else:
-            REPORT_GENERATION_PROMPT = REPORT_PROMPT + STRUCTURE_OF_THE_ANSWER
-
+    def get_report(self, prompt: str):
         updated_prompt = prompt + "\n\n" + REPORT_GENERATION_PROMPT
         report = self.llm.ask_llama(updated_prompt)
         log_debug(report)

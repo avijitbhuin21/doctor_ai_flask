@@ -16,7 +16,7 @@ class B2b:
             base_prompt += "These are the reports related to the patient:\n" + reports
 
 
-        questions = ask_gemini_flash(question=base_prompt, sys=QUESTION_GENERATION_PROMPT, JSON= True)
+        questions = ask_gemini_flash(question=base_prompt, sys=QUESTION_GENERATION_PROMPT_B2B, JSON= True)
         log_debug(questions, name = "Questions")
         
         return questions['content']

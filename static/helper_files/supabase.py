@@ -46,3 +46,30 @@ def store_feedback(email, feedback):
     }).execute()
     
     return jsonify({"status": "success"}), 200
+
+def store_B2b_data(data):
+    result = supabase.table('B2b_convo').insert({
+        "email": data['email'],
+        "patient_info": data['patient_info'],
+        "report": data['report'],
+        "follow_up": data['follow_up'],
+        "diagnosis": data['diagnosis']
+    }).execute()
+    
+    return jsonify({"status": "success"}), 200
+
+def store_B2c_data(data):
+    result = supabase.table('conversation').insert({
+        "email": data['email'],
+        "conversation": data['conversation'],
+    }).execute()
+    
+    return jsonify({"status": "success"}), 200
+
+def store_patient_info(data):
+    result = supabase.table('patient_info_B2c').insert({
+        "email": data['email'],
+        "patient_info": data['patient_info']
+        }).execute()
+    
+    return jsonify({"status": "success"}), 200
