@@ -1,24 +1,22 @@
 from flask import Flask, render_template, request, jsonify
-from static.helper_files.utils import Patient_chat_Helper, File, ECG
 import json
 from flask import request
-from static.helper_files.supabase import *
+from dotenv import load_dotenv
 
 #Local imports
 from static.helper_files.PROMPTS import *
 from static.helper_files.universal_functions import *
 from static.helper_files.B2b import B2b
 from static.helper_files.B2c import B2c
+from static.helper_files.supabase import *
 
-from dotenv import load_dotenv
+
 
 load_dotenv()
 
 
 patient_agent = B2c()
 doctor_agent = B2b()
-file_handler = File()
-ecg_agent = ECG()
 app = Flask(__name__)
 
 # ALL GET ROUTES
