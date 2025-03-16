@@ -2,7 +2,7 @@ from supabase import create_client
 from flask import jsonify
 import os
 from dotenv import load_dotenv
-from .utils import log_debug
+from static.helper_files.universal_functions import log_debug
 
 load_dotenv()
 
