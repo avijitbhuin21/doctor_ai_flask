@@ -3,15 +3,13 @@ import openai
 import json
 from dotenv import load_dotenv
 import os
-from mistralai import Mistral
 import random
-import io
-import base64
 from google import genai
 from google.genai import types
 import tempfile
 from datetime import datetime
 import markdown
+from typing import List, Tuple
 
 load_dotenv()
 DEBUG = True
@@ -64,6 +62,8 @@ def generate_medical_report_html(markdown_text):
 #ASK GEMINI FLASH Function:
 def ask_gemini_flash(question, sys, api_key = os.getenv('Gemini_APi_Key'), model = "gemini-2.0-flash-thinking-exp-01-21", JSON = False, history = None):
 
+    log_debug(question, name = "Asking Gemini Flash")
+
     client = genai.Client(api_key=api_key)
 
     #Assuming the history is in this format: [{"role": "user", "text": "Hello"}, {"role": "model", "text": "Hi there!"}]
@@ -106,34 +106,39 @@ def ask_gemini_flash(question, sys, api_key = os.getenv('Gemini_APi_Key'), model
 
 
 #Process a file with Gemini
-def process_file_with_gemini(file_bytes, file_extension, sys= '', prompt= '', api_key = os.getenv('Gemini_APi_Key'), model = "gemini-2.0-flash", JSON = False):
+def process_file_with_gemini(file_data: List[Tuple], sys= '', prompt= '', api_key = os.getenv('Gemini_APi_Key'), model = "gemini-2.0-flash", JSON = False):
+    
+    # File data structure: [(filename, file_content), (filename, file_content),...]
+
     client = genai.Client(api_key=api_key)
 
-    # make a temporary file
-    tmp_file = tempfile.NamedTemporaryFile(suffix=file_extension, delete=False)
-
-    tmp_file.write(file_bytes)
-    tmp_file.close()
+    parts_init = []
     
-    # Upload the file
-    uploaded_file = client.files.upload(
-        file=tmp_file.name,
-    )
 
-    # remove the temporary file
-    if os.path.exists(tmp_file.name):
-        os.unlink(tmp_file.name)
+    # make temporary files
+    for file_name, file_bytes in file_data:
+        tmp_file = tempfile.NamedTemporaryFile(suffix="." + file_name.split(".")[-1], delete=False)
+
+        tmp_file.write(file_bytes)
+        tmp_file.close()
+    
+        # Upload the file
+        uploaded_file = client.files.upload(
+            file=tmp_file.name,
+        )
+        parts_init.append(types.Part.from_uri(
+                    file_uri=uploaded_file.uri,
+                    mime_type=uploaded_file.mime_type,
+                ))
+
+        # remove the temporary file
+        if os.path.exists(tmp_file.name):
+            os.unlink(tmp_file.name)
 
     contents = [
         types.Content(
             role="user",
-            parts=[
-                types.Part.from_uri(
-                    file_uri=uploaded_file.uri,
-                    mime_type=uploaded_file.mime_type,
-                ),
-                types.Part.from_text(text=prompt),
-            ],
+            parts= parts_init + [types.Part.from_text(text=prompt)],
         ),
     ]
     generate_content_config = types.GenerateContentConfig(
@@ -175,7 +180,7 @@ def ask_llama(sys, query, api_key = random.choice(os.getenv('Sambanova_Api_Key')
         if not JSON:
             return ans
         try:
-            data = json.loads(parse_text_to_json(ans))
+            data = parse_text_to_json(ans)
             return data
         except Exception as e:
             print(e)
