@@ -40,7 +40,8 @@ class B2b:
 
         prompt = base_prompt + questions
         report = ask_llama(query= prompt, sys= DIFFERENTIAL_DIAGONOSIS_GENERATION_PROMPT)
-        report = "\n\n\n"+report.split("</think>")[-1]
+        if '</think>':
+            report = "\n\n\n"+report.split("</think>")[-1]
         log_debug(report, name = "Report")
         report = generate_medical_report_html(report)
         return report['html']
