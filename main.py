@@ -118,8 +118,9 @@ def generate_report():
     differential_diagonosis = doctor_agent.generate_report(patient_data= patient_info, report= report, follow_up_questions= follow_up_questions)
     log_debug(differential_diagonosis)
     data = {"email": email, "patient_info": str(patient_info), "report": str(report), "follow_up": str(follow_up_questions), "diagnosis": str(differential_diagonosis)}
+    print("\n\n\n\n"+str(data))
     store_B2b_data(data)
-    return jsonify({"report": differential_diagonosis})
+    return {"report": differential_diagonosis}
 
 #B2c  ------------------------------------------------------------------------------------------------------------------------------------------->
 

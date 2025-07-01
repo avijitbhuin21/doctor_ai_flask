@@ -48,7 +48,7 @@ def store_feedback(email, feedback):
     return jsonify({"status": "success"}), 200
 
 def store_B2b_data(data):
-    result = supabase.table('B2b_convo').insert({
+    result = supabase.table('b2b_convo').insert({
         "email": data['email'],
         "patient_info": data['patient_info'],
         "report": data['report'],
