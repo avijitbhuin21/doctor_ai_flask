@@ -164,7 +164,7 @@ def process_file_with_gemini(file_data: List[Tuple], sys= '', prompt= '', api_ke
         return response.text
 
 
-def ask_llama(sys, query, api_key = random.choice(os.getenv('Sambanova_Api_Key').split()), model = "Meta-Llama-3.1-405B-Instruct", JSON = False):
+def ask_llama(sys, query, api_key = random.choice(os.getenv('Sambanova_Api_Key').split()), model = "DeepSeek-R1-0528", JSON = False):
     for i in range(5):
         SambaNova_Client = openai.OpenAI(
                 api_key=api_key,
