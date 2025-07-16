@@ -119,7 +119,7 @@ def generate_report():
     log_debug(differential_diagonosis)
     data = {"email": email, "patient_info": str(patient_info), "report": str(report), "follow_up": str(follow_up_questions), "diagnosis": str(differential_diagonosis)}
     print("\n\n\n\n"+str(data))
-    store_B2b_data(data)
+    # store_B2b_data(data)
     return {"report": differential_diagonosis}
 
 #B2c  ------------------------------------------------------------------------------------------------------------------------------------------->
